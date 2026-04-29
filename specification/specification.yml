@@ -1,0 +1,921 @@
+openapi: 3.1.0
+info:
+  title: Six Cities API
+  version: 1.0.0
+  description: REST API for the Six Cities rental service.
+servers:
+  - url: http://localhost:4000/api
+tags:
+  - name: Users
+  - name: Offers
+  - name: Comments
+  - name: Favorites
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    offerId:
+      name: offerId
+      in: path
+      required: true
+      description: Offer identifier.
+      schema:
+        type: string
+        example: 67f3a0f02d0f4d8b0f8d1234
+  schemas:
+    CityName:
+      type: string
+      enum:
+        - Paris
+        - Cologne
+        - Brussels
+        - Amsterdam
+        - Hamburg
+        - Dusseldorf
+    HousingType:
+      type: string
+      enum:
+        - apartment
+        - house
+        - room
+        - hotel
+    Amenity:
+      type: string
+      enum:
+        - Breakfast
+        - Air conditioning
+        - Laptop friendly workspace
+        - Baby seat
+        - Washer
+        - Towels
+        - Fridge
+    UserType:
+      type: string
+      enum:
+        - ordinary
+        - pro
+    Coordinates:
+      type: object
+      additionalProperties: false
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: double
+          example: 48.85661
+        longitude:
+          type: number
+          format: double
+          example: 2.351499
+    City:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - location
+      properties:
+        name:
+          $ref: '#/components/schemas/CityName'
+        location:
+          $ref: '#/components/schemas/Coordinates'
+    User:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - email
+        - type
+      properties:
+        id:
+          type: string
+          example: 67f39fe12d0f4d8b0f8d2221
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+          example: Alex
+        email:
+          type: string
+          format: email
+          example: alex@example.com
+        avatarPath:
+          type: string
+          format: uri
+          pattern: '.*\.(jpg|png)$'
+          example: https://example.com/avatar.jpg
+        type:
+          $ref: '#/components/schemas/UserType'
+    UserRegister:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - email
+        - password
+        - type
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+          example: Alex
+        email:
+          type: string
+          format: email
+          example: alex@example.com
+        password:
+          type: string
+          minLength: 6
+          maxLength: 12
+          example: pass123
+        avatarPath:
+          type: string
+          format: uri
+          pattern: '.*\.(jpg|png)$'
+          example: https://example.com/avatar.jpg
+        type:
+          $ref: '#/components/schemas/UserType'
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: alex@example.com
+        password:
+          type: string
+          example: pass123
+    LoggedUser:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - email
+        - type
+        - token
+      properties:
+        id:
+          type: string
+          example: 67f39fe12d0f4d8b0f8d2221
+        name:
+          type: string
+          minLength: 1
+          maxLength: 15
+          example: Alex
+        email:
+          type: string
+          format: email
+          example: alex@example.com
+        avatarPath:
+          type: string
+          format: uri
+          pattern: '.*\.(jpg|png)$'
+          example: https://example.com/avatar.jpg
+        type:
+          $ref: '#/components/schemas/UserType'
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+    AuthToken:
+      type: object
+      additionalProperties: false
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+    OfferBase:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - description
+        - city
+        - previewImage
+        - images
+        - isPremium
+        - type
+        - bedrooms
+        - maxAdults
+        - price
+        - amenities
+        - location
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: Cozy studio in city center
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: Fresh renovation, fully equipped kitchen and fast Wi-Fi.
+        city:
+          $ref: '#/components/schemas/City'
+        previewImage:
+          type: string
+          format: uri
+          example: https://images.example.com/preview-1.jpg
+        images:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            type: string
+            format: uri
+        isPremium:
+          type: boolean
+          example: true
+        type:
+          $ref: '#/components/schemas/HousingType'
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 3
+        maxAdults:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 4
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 1200
+        amenities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amenity'
+        location:
+          $ref: '#/components/schemas/Coordinates'
+    OfferCreate:
+      allOf:
+        - $ref: '#/components/schemas/OfferBase'
+    OfferUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+        city:
+          $ref: '#/components/schemas/City'
+        previewImage:
+          type: string
+          format: uri
+        images:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            type: string
+            format: uri
+        isPremium:
+          type: boolean
+        type:
+          $ref: '#/components/schemas/HousingType'
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+        maxAdults:
+          type: integer
+          minimum: 1
+          maximum: 10
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+        amenities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amenity'
+        location:
+          $ref: '#/components/schemas/Coordinates'
+    Offer:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+        - description
+        - postDate
+        - city
+        - previewImage
+        - images
+        - isPremium
+        - isFavorite
+        - rating
+        - type
+        - bedrooms
+        - maxAdults
+        - price
+        - amenities
+        - host
+        - commentCount
+        - location
+      properties:
+        id:
+          type: string
+          example: 67f3a0f02d0f4d8b0f8d1234
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: Cozy studio in city center
+        description:
+          type: string
+          minLength: 20
+          maxLength: 1024
+          example: Fresh renovation, fully equipped kitchen and fast Wi-Fi.
+        postDate:
+          type: string
+          format: date-time
+          example: 2026-04-29T08:30:00.000Z
+        city:
+          $ref: '#/components/schemas/City'
+        previewImage:
+          type: string
+          format: uri
+          example: https://images.example.com/preview-1.jpg
+        images:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            type: string
+            format: uri
+        isPremium:
+          type: boolean
+          example: true
+        isFavorite:
+          type: boolean
+          example: false
+        rating:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 5
+          example: 4.8
+        type:
+          $ref: '#/components/schemas/HousingType'
+        bedrooms:
+          type: integer
+          minimum: 1
+          maximum: 8
+          example: 3
+        maxAdults:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 4
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 1200
+        amenities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amenity'
+        host:
+          $ref: '#/components/schemas/User'
+        commentCount:
+          type: integer
+          minimum: 0
+          example: 12
+        location:
+          $ref: '#/components/schemas/Coordinates'
+    OfferPreview:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+        - type
+        - price
+        - city
+        - previewImage
+        - isPremium
+        - isFavorite
+        - rating
+        - postDate
+        - commentCount
+      properties:
+        id:
+          type: string
+          example: 67f3a0f02d0f4d8b0f8d1234
+        title:
+          type: string
+          minLength: 10
+          maxLength: 100
+          example: Cozy studio in city center
+        type:
+          $ref: '#/components/schemas/HousingType'
+        price:
+          type: integer
+          minimum: 100
+          maximum: 100000
+          example: 1200
+        city:
+          $ref: '#/components/schemas/City'
+        previewImage:
+          type: string
+          format: uri
+          example: https://images.example.com/preview-1.jpg
+        isPremium:
+          type: boolean
+          example: true
+        isFavorite:
+          type: boolean
+          example: false
+        rating:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 5
+          example: 4.8
+        postDate:
+          type: string
+          format: date-time
+          example: 2026-04-29T08:30:00.000Z
+        commentCount:
+          type: integer
+          minimum: 0
+          example: 12
+    Comment:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - text
+        - rating
+        - author
+        - createdAt
+      properties:
+        id:
+          type: string
+          example: 67f3a2422d0f4d8b0f8d9876
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+          example: Great apartment, clean and well located.
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+        author:
+          $ref: '#/components/schemas/User'
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-04-29T09:00:00.000Z
+    CommentCreate:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+        - rating
+      properties:
+        text:
+          type: string
+          minLength: 5
+          maxLength: 1024
+          example: Great apartment, clean and well located.
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          example: 5
+    Error:
+      type: object
+      additionalProperties: false
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          example: Validation error
+paths:
+  /users/register:
+    post:
+      tags:
+        - Users
+      summary: Register a new user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegister'
+      responses:
+        '201':
+          description: User created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          description: User with this email already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/login:
+    get:
+      tags:
+        - Users
+      summary: Get current authenticated user.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Authenticated user data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Users
+      summary: Authenticate user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /users/logout:
+    delete:
+      tags:
+        - Users
+      summary: End current session.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Session ended.
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /offers:
+    get:
+      tags:
+        - Offers
+      summary: Get all offers.
+      description: Returns offers sorted by publication date descending.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Number of offers to return. Default is 60.
+          schema:
+            type: integer
+            minimum: 1
+            default: 60
+            example: 60
+      responses:
+        '200':
+          description: Offers list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+    post:
+      tags:
+        - Offers
+      summary: Create a new offer.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferCreate'
+      responses:
+        '201':
+          description: Offer created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /offers/{offerId}:
+    get:
+      tags:
+        - Offers
+      summary: Get offer by id.
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '200':
+          description: Offer details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Offers
+      summary: Update offer.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferUpdate'
+      responses:
+        '200':
+          description: Offer updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '400':
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Operation forbidden for this user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Offers
+      summary: Delete offer.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '204':
+          description: Offer deleted.
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Operation forbidden for this user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /offers/premium:
+    get:
+      tags:
+        - Offers
+      summary: Get premium offers for a city.
+      description: Returns at most 3 premium offers sorted by publication date descending.
+      parameters:
+        - name: city
+          in: query
+          required: true
+          description: City name.
+          schema:
+            $ref: '#/components/schemas/CityName'
+      responses:
+        '200':
+          description: Premium offers list.
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 3
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+        '400':
+          description: Invalid city name.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /offers/favorites:
+    get:
+      tags:
+        - Favorites
+      summary: Get favorite offers.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Favorite offers list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferPreview'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /offers/{offerId}/favorite:
+    post:
+      tags:
+        - Favorites
+      summary: Add offer to favorites.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '200':
+          description: Offer added to favorites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Favorites
+      summary: Remove offer from favorites.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '200':
+          description: Offer removed from favorites.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Offer'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /comments/{offerId}:
+    get:
+      tags:
+        - Comments
+      summary: Get comments for an offer.
+      description: Returns at most 50 latest comments sorted by publication date descending.
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      responses:
+        '200':
+          description: Comments list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Comments
+      summary: Create comment for an offer.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/offerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreate'
+      responses:
+        '201':
+          description: Comment created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+        '400':
+          description: Validation error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Offer not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
