@@ -34,8 +34,6 @@ export class DefaultUserService implements UserService {
       _id: { $in: user.favorites },
     })
       .sort({ postDate: -1 })
-      .populate('city')
-      .populate('host')
       .exec();
   }
 

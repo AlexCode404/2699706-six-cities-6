@@ -12,28 +12,17 @@ const DEFAULT_PREMIUM_LIMIT = 3;
 @injectable()
 export class DefaultOfferService implements OfferService {
   public async create(dto: CreateOfferDto): Promise<OfferDocument> {
-    const offer = await OfferModel.create(dto);
-
-    return OfferModel.findById(offer._id)
-      .populate('city')
-      .populate('host')
-      .orFail()
-      .exec();
+    return OfferModel.create(dto);
   }
 
   public async findById(id: string): Promise<OfferDocument | null> {
-    return OfferModel.findById(id)
-      .populate('city')
-      .populate('host')
-      .exec();
+    return OfferModel.findById(id).exec();
   }
 
   public async find(limit: number = DEFAULT_OFFER_LIMIT): Promise<OfferDocument[]> {
     return OfferModel.find()
       .sort({ postDate: -1 })
       .limit(limit)
-      .populate('city')
-      .populate('host')
       .exec();
   }
 
@@ -42,8 +31,6 @@ export class DefaultOfferService implements OfferService {
       _id: id,
       host: hostId,
     })
-      .populate('city')
-      .populate('host')
       .exec();
   }
 
@@ -54,8 +41,6 @@ export class DefaultOfferService implements OfferService {
     })
       .sort({ postDate: -1 })
       .limit(limit)
-      .populate('city')
-      .populate('host')
       .exec();
   }
 
@@ -67,17 +52,11 @@ export class DefaultOfferService implements OfferService {
       update.city = city._id;
     }
 
-    return OfferModel.findByIdAndUpdate(id, update, { new: true })
-      .populate('city')
-      .populate('host')
-      .exec();
+    return OfferModel.findByIdAndUpdate(id, update, { new: true }).exec();
   }
 
   public async deleteById(id: string): Promise<OfferDocument | null> {
-    const deletedOffer = await OfferModel.findByIdAndDelete(id)
-      .populate('city')
-      .populate('host')
-      .exec();
+    const deletedOffer = await OfferModel.findByIdAndDelete(id).exec();
 
     if (deletedOffer) {
       await CommentModel.deleteMany({ offer: id }).exec();

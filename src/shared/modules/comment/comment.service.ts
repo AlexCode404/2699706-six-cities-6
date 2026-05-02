@@ -19,18 +19,13 @@ export class DefaultCommentService implements CommentService {
 
     await this.updateOfferStats(offerId);
 
-    return CommentModel.findById(comment._id)
-      .populate('author')
-      .populate('offer')
-      .orFail()
-      .exec();
+    return CommentModel.findById(comment._id).orFail().exec();
   }
 
   public async findByOfferId(offerId: string, limit: number = DEFAULT_COMMENT_LIMIT): Promise<CommentDocument[]> {
     return CommentModel.find({ offer: offerId })
       .sort({ createdAt: -1 })
       .limit(limit)
-      .populate('author')
       .exec();
   }
 

@@ -12,7 +12,7 @@ export type UserEntity = {
 
 export type UserDocument = HydratedDocument<UserEntity>;
 
-const userSchema = new Schema<UserEntity>(
+const userSchema = new Schema(
   {
     name: {
       type: String,
@@ -46,4 +46,4 @@ const userSchema = new Schema<UserEntity>(
   }
 );
 
-export const UserModel = model<UserEntity>('User', userSchema);
+export const UserModel = model('User', userSchema);
