@@ -120,4 +120,4 @@ const offerSchema = new Schema(
   }
 );
 
-export const OfferModel = model<OfferEntity>('Offer', offerSchema);
+export const OfferModel = model('Offer', offerSchema);
