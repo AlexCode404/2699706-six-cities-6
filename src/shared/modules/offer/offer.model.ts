@@ -25,7 +25,7 @@ export type OfferEntity = {
 
 export type OfferDocument = HydratedDocument<OfferEntity>;
 
-const locationSchema = new Schema<Location>(
+const locationSchema = new Schema(
   {
     latitude: {
       type: Number,

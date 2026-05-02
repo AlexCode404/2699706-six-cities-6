@@ -1,9 +1,9 @@
 import { config as loadEnv } from 'dotenv';
-import convict, { Config } from 'convict';
+import convict, { Config, Format } from 'convict';
 import validator from 'convict-format-with-validator';
 
 loadEnv();
-convict.addFormats(validator);
+convict.addFormats(validator as { [name: string]: Format });
 
 type AppConfigSchema = {
   PORT: number;
