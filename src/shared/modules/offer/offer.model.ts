@@ -41,7 +41,7 @@ const locationSchema = new Schema(
   }
 );
 
-const offerSchema = new Schema<OfferEntity>(
+const offerSchema = new Schema(
   {
     title: {
       type: String,
