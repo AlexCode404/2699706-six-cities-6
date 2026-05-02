@@ -1,4 +1,4 @@
-import { Schema, model, type Document, Types } from 'mongoose';
+import { Schema, model, type HydratedDocument, Types } from 'mongoose';
 import { UserType } from '../../types/user.type.js';
 
 export type UserEntity = {
@@ -10,7 +10,7 @@ export type UserEntity = {
   favorites: Types.ObjectId[];
 };
 
-export type UserDocument = UserEntity & Document;
+export type UserDocument = HydratedDocument<UserEntity>;
 
 const userSchema = new Schema<UserEntity>(
   {
@@ -46,4 +46,4 @@ const userSchema = new Schema<UserEntity>(
   }
 );
 
-export const UserModel = model<UserDocument>('User', userSchema);
+export const UserModel = model<UserEntity>('User', userSchema);

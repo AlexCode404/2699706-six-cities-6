@@ -1,4 +1,4 @@
-import { Schema, model, type Document, Types } from 'mongoose';
+import { Schema, model, type HydratedDocument, Types } from 'mongoose';
 import { Amenity } from '../../types/amenity.enum.js';
 import { HousingType } from '../../types/housing-type.enum.js';
 import type { Location } from '../../types/offer.type.js';
@@ -23,7 +23,7 @@ export type OfferEntity = {
   location: Location;
 };
 
-export type OfferDocument = OfferEntity & Document;
+export type OfferDocument = HydratedDocument<OfferEntity>;
 
 const locationSchema = new Schema<Location>(
   {
@@ -120,4 +120,4 @@ const offerSchema = new Schema<OfferEntity>(
   }
 );
 
-export const OfferModel = model<OfferDocument>('Offer', offerSchema);
+export const OfferModel = model<OfferEntity>('Offer', offerSchema);

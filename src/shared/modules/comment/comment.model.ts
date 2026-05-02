@@ -1,4 +1,4 @@
-import { Schema, model, type Document, Types } from 'mongoose';
+import { Schema, model, type HydratedDocument, Types } from 'mongoose';
 
 export type CommentEntity = {
   text: string;
@@ -8,7 +8,7 @@ export type CommentEntity = {
   createdAt?: Date;
 };
 
-export type CommentDocument = CommentEntity & Document;
+export type CommentDocument = HydratedDocument<CommentEntity>;
 
 const commentSchema = new Schema<CommentEntity>(
   {
@@ -39,4 +39,4 @@ const commentSchema = new Schema<CommentEntity>(
   }
 );
 
-export const CommentModel = model<CommentDocument>('Comment', commentSchema);
+export const CommentModel = model<CommentEntity>('Comment', commentSchema);
