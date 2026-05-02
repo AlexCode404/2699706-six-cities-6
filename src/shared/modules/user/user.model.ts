@@ -1,9 +1,18 @@
-import { Schema, model, type Document } from 'mongoose';
-import { User, UserType } from '../../types/user.type.js';
+import { Schema, model, type Document, Types } from 'mongoose';
+import { UserType } from '../../types/user.type.js';
 
-export type UserDocument = User & Document;
+export type UserEntity = {
+  name: string;
+  email: string;
+  avatarPath: string;
+  password?: string;
+  type: UserType;
+  favorites: Types.ObjectId[];
+};
 
-const userSchema = new Schema<User>(
+export type UserDocument = UserEntity & Document;
+
+const userSchema = new Schema<UserEntity>(
   {
     name: {
       type: String,
@@ -25,6 +34,11 @@ const userSchema = new Schema<User>(
       type: String,
       enum: Object.values(UserType),
       required: true,
+    },
+    favorites: {
+      type: [Schema.Types.ObjectId],
+      ref: 'Offer',
+      default: [],
     },
   },
   {

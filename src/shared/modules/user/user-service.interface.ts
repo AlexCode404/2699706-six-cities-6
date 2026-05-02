@@ -1,8 +1,12 @@
-import { User } from '../../types/user.type.js';
-import { UserDocument } from './user.model.js';
+import type { OfferDocument } from '../offer/offer.model.js';
+import type { UserDocument } from './user.model.js';
+import type { CreateUserDto } from './dto/create-user.dto.js';
 
 export interface UserService {
-  create(dto: User): Promise<UserDocument>;
+  create(dto: CreateUserDto): Promise<UserDocument>;
   findById(id: string): Promise<UserDocument | null>;
   findByEmail(email: string): Promise<UserDocument | null>;
+  getFavorites(userId: string): Promise<OfferDocument[]>;
+  addFavorite(userId: string, offerId: string): Promise<UserDocument | null>;
+  removeFavorite(userId: string, offerId: string): Promise<UserDocument | null>;
 }
