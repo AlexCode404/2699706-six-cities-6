@@ -14,6 +14,15 @@ import { OfferService } from '../modules/offer/offer-service.interface.js';
 import { DefaultOfferService } from '../modules/offer/offer.service.js';
 import { CommentService } from '../modules/comment/comment-service.interface.js';
 import { DefaultCommentService } from '../modules/comment/comment.service.js';
+import { TokenService } from '../libs/token/token-service.interface.js';
+import { InMemoryTokenService } from '../libs/token/in-memory-token.service.js';
+import { PrivateRouteMiddleware } from '../http/middleware/private-route.middleware.js';
+import { UserController } from '../modules/user/controller/user.controller.js';
+import { OfferController } from '../modules/offer/controller/offer.controller.js';
+import { Controller } from '../http/types/controller.interface.js';
+import { HttpExceptionFilter } from '../http/exception-filter/http-exception.filter.js';
+import { UnknownExceptionFilter } from '../http/exception-filter/unknown-exception.filter.js';
+import { ExceptionFilter } from '../http/exception-filter/exception-filter.interface.js';
 
 const container = new Container();
 
@@ -21,9 +30,15 @@ container.bind<Application>(Component.Application).to(Application).inSingletonSc
 container.bind<Logger>(Component.Logger).to(PinoLogger).inSingletonScope();
 container.bind<AppConfig>(Component.Config).toConstantValue(appConfig);
 container.bind<DatabaseClient>(Component.DatabaseClient).to(MongoDatabaseClient).inSingletonScope();
+container.bind<TokenService>(Component.TokenService).to(InMemoryTokenService).inSingletonScope();
 container.bind<UserService>(Component.UserService).to(DefaultUserService).inSingletonScope();
 container.bind<CityService>(Component.CityService).to(DefaultCityService).inSingletonScope();
 container.bind<OfferService>(Component.OfferService).to(DefaultOfferService).inSingletonScope();
 container.bind<CommentService>(Component.CommentService).to(DefaultCommentService).inSingletonScope();
+container.bind<PrivateRouteMiddleware>(Component.PrivateRouteMiddleware).to(PrivateRouteMiddleware).inSingletonScope();
+container.bind<Controller>(Component.UserController).to(UserController).inSingletonScope();
+container.bind<Controller>(Component.OfferController).to(OfferController).inSingletonScope();
+container.bind<ExceptionFilter>(Component.HttpExceptionFilter).to(HttpExceptionFilter).inSingletonScope();
+container.bind<ExceptionFilter>(Component.UnknownExceptionFilter).to(UnknownExceptionFilter).inSingletonScope();
 
 export { container };
