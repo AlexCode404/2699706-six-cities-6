@@ -1,9 +1,7 @@
-import { Schema, model, type Document } from 'mongoose';
-import { User, UserType } from '../../types/user.type.js';
+import { Schema, model, type InferSchemaType } from 'mongoose';
+import { UserType } from '../../types/user.type.js';
 
-export type UserDocument = User & Document;
-
-const userSchema = new Schema<User>(
+const userSchema = new Schema(
   {
     name: {
       type: String,
@@ -26,10 +24,18 @@ const userSchema = new Schema<User>(
       enum: Object.values(UserType),
       required: true,
     },
+    favorites: {
+      type: [Schema.Types.ObjectId],
+      ref: 'Offer',
+      default: [],
+    },
   },
   {
     timestamps: true,
   }
 );
 
-export const UserModel = model<UserDocument>('User', userSchema);
+export type UserEntity = InferSchemaType<typeof userSchema>;
+
+export const UserModel = model('User', userSchema);
+export type UserDocument = ReturnType<(typeof UserModel)['hydrate']>;

@@ -1,9 +1,6 @@
-import { Schema, model, type Document } from 'mongoose';
-import { City } from '../../types/city.type.js';
+import { Schema, model, type InferSchemaType } from 'mongoose';
 
-export type CityDocument = City & Document;
-
-const citySchema = new Schema<City>(
+const citySchema = new Schema(
   {
     name: {
       type: String,
@@ -23,4 +20,6 @@ const citySchema = new Schema<City>(
   }
 );
 
-export const CityModel = model<CityDocument>('City', citySchema);
+export type CityEntity = InferSchemaType<typeof citySchema>;
+export const CityModel = model('City', citySchema);
+export type CityDocument = ReturnType<(typeof CityModel)['hydrate']>;

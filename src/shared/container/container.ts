@@ -12,6 +12,8 @@ import { CityService } from '../modules/city/city-service.interface.js';
 import { DefaultCityService } from '../modules/city/city.service.js';
 import { OfferService } from '../modules/offer/offer-service.interface.js';
 import { DefaultOfferService } from '../modules/offer/offer.service.js';
+import { CommentService } from '../modules/comment/comment-service.interface.js';
+import { DefaultCommentService } from '../modules/comment/comment.service.js';
 
 const container = new Container();
 
@@ -22,5 +24,6 @@ container.bind<DatabaseClient>(Component.DatabaseClient).to(MongoDatabaseClient)
 container.bind<UserService>(Component.UserService).to(DefaultUserService).inSingletonScope();
 container.bind<CityService>(Component.CityService).to(DefaultCityService).inSingletonScope();
 container.bind<OfferService>(Component.OfferService).to(DefaultOfferService).inSingletonScope();
+container.bind<CommentService>(Component.CommentService).to(DefaultCommentService).inSingletonScope();
 
 export { container };

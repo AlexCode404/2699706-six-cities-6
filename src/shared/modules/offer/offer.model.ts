@@ -1,31 +1,7 @@
-import { Schema, model, type Document, Types } from 'mongoose';
-import { Amenity } from '../../types/amenity.enum.js';
+import { Schema, model, type InferSchemaType } from 'mongoose';
 import { HousingType } from '../../types/housing-type.enum.js';
-import type { Location } from '../../types/offer.type.js';
 
-export type OfferEntity = {
-  title: string;
-  description: string;
-  postDate: Date;
-  city: Types.ObjectId;
-  previewImage: string;
-  images: string[];
-  isPremium: boolean;
-  isFavorite: boolean;
-  rating: number;
-  type: HousingType;
-  bedrooms: number;
-  maxAdults: number;
-  price: number;
-  amenities: Amenity[];
-  host: Types.ObjectId;
-  commentCount: number;
-  location: Location;
-};
-
-export type OfferDocument = OfferEntity & Document;
-
-const locationSchema = new Schema<Location>(
+const locationSchema = new Schema(
   {
     latitude: {
       type: Number,
@@ -41,7 +17,7 @@ const locationSchema = new Schema<Location>(
   }
 );
 
-const offerSchema = new Schema<OfferEntity>(
+const offerSchema = new Schema(
   {
     title: {
       type: String,
@@ -69,10 +45,6 @@ const offerSchema = new Schema<OfferEntity>(
       required: true,
     },
     isPremium: {
-      type: Boolean,
-      required: true,
-    },
-    isFavorite: {
       type: Boolean,
       required: true,
     },
@@ -120,4 +92,7 @@ const offerSchema = new Schema<OfferEntity>(
   }
 );
 
-export const OfferModel = model<OfferDocument>('Offer', offerSchema);
+export type OfferEntity = InferSchemaType<typeof offerSchema>;
+
+export const OfferModel = model('Offer', offerSchema);
+export type OfferDocument = ReturnType<(typeof OfferModel)['hydrate']>;
