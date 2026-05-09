@@ -106,24 +106,24 @@ export class ImportCommand implements Command {
     const existingCity = await cityService.findByName(offer.city.name);
     const city = existingCity ?? (await cityService.create(offer.city));
 
-    await offerService.create({
+    const createdOffer = await offerService.create({
       title: offer.title,
       description: offer.description,
-      postDate: offer.postDate,
       city: city._id,
       previewImage: offer.previewImage,
       images: offer.images,
       isPremium: offer.isPremium,
-      isFavorite: offer.isFavorite,
-      rating: offer.rating,
       type: offer.type,
       bedrooms: offer.bedrooms,
       maxAdults: offer.maxAdults,
       price: offer.price,
       amenities: offer.amenities,
       host: user._id,
-      commentCount: offer.commentCount,
       location: offer.location,
     });
+
+    if (offer.isFavorite) {
+      await userService.addFavorite(user.id, createdOffer.id);
+    }
   }
 }

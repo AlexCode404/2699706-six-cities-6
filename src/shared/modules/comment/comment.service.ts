@@ -1,8 +1,9 @@
 import { injectable } from 'inversify';
 import { Types } from 'mongoose';
-import { CommentService } from './comment-service.interface.js';
-import { CommentDocument, CommentModel } from './comment.model.js';
-import { CreateCommentDto } from './dto/create-comment.dto.js';
+import type { CommentService } from './comment-service.interface.js';
+import { CommentModel } from './comment.model.js';
+import type { CommentDocument } from './comment.model.js';
+import type { CreateCommentDto } from './dto/create-comment.dto.js';
 import { OfferModel } from '../offer/offer.model.js';
 
 const DEFAULT_COMMENT_LIMIT = 50;
@@ -19,14 +20,16 @@ export class DefaultCommentService implements CommentService {
 
     await this.updateOfferStats(offerId);
 
-    return CommentModel.findById(comment._id).orFail().exec();
+    const createdComment = await CommentModel.findById(comment._id).orFail().exec();
+    return createdComment as CommentDocument;
   }
 
   public async findByOfferId(offerId: string, limit: number = DEFAULT_COMMENT_LIMIT): Promise<CommentDocument[]> {
-    return CommentModel.find({ offer: offerId })
+    const comments = await CommentModel.find({ offer: offerId })
       .sort({ createdAt: -1 })
       .limit(limit)
       .exec();
+    return comments as CommentDocument[];
   }
 
   public async deleteByOfferId(offerId: string): Promise<number> {

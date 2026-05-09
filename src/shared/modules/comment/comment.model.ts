@@ -1,16 +1,6 @@
-import { Schema, model, type HydratedDocument, Types } from 'mongoose';
+import { Schema, model, type InferSchemaType } from 'mongoose';
 
-export type CommentEntity = {
-  text: string;
-  rating: number;
-  author: Types.ObjectId;
-  offer: Types.ObjectId;
-  createdAt?: Date;
-};
-
-export type CommentDocument = HydratedDocument<CommentEntity>;
-
-const commentSchema = new Schema<CommentEntity>(
+const commentSchema = new Schema(
   {
     text: {
       type: String,
@@ -39,4 +29,6 @@ const commentSchema = new Schema<CommentEntity>(
   }
 );
 
-export const CommentModel = model<CommentEntity>('Comment', commentSchema);
+export type CommentEntity = InferSchemaType<typeof commentSchema>;
+export const CommentModel = model('Comment', commentSchema);
+export type CommentDocument = ReturnType<(typeof CommentModel)['hydrate']>;

@@ -1,16 +1,5 @@
-import { Schema, model, type HydratedDocument, Types } from 'mongoose';
+import { Schema, model, type InferSchemaType } from 'mongoose';
 import { UserType } from '../../types/user.type.js';
-
-export type UserEntity = {
-  name: string;
-  email: string;
-  avatarPath: string;
-  password?: string;
-  type: UserType;
-  favorites: Types.ObjectId[];
-};
-
-export type UserDocument = HydratedDocument<UserEntity>;
 
 const userSchema = new Schema(
   {
@@ -46,4 +35,7 @@ const userSchema = new Schema(
   }
 );
 
+export type UserEntity = InferSchemaType<typeof userSchema>;
+
 export const UserModel = model('User', userSchema);
+export type UserDocument = ReturnType<(typeof UserModel)['hydrate']>;
