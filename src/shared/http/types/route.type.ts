@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { Middleware } from './middleware.interface.js';
 
 export enum HttpMethod {
   Get = 'get',
@@ -11,5 +12,5 @@ export type Route = {
   path: string;
   method: HttpMethod;
   handler: (req: Request, res: Response, next: NextFunction) => Promise<void> | void;
-  middlewares?: Array<(req: Request, res: Response, next: NextFunction) => Promise<void> | void>;
+  middlewares?: Middleware[];
 };

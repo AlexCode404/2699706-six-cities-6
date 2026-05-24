@@ -8,6 +8,9 @@ convict.addFormats(validator as { [name: string]: Format });
 type AppConfigSchema = {
   PORT: number;
   DB_HOST: string;
+  DB_USER: string;
+  DB_PASSWORD: string;
+  DB_NAME: string;
   SALT: string;
 };
 
@@ -16,19 +19,37 @@ const appConfig = convict<AppConfigSchema>({
     doc: 'Port for incoming connections',
     format: 'port',
     env: 'PORT',
-    default: null,
+    default: 4000,
   },
   DB_HOST: {
     doc: 'Database server IP address',
     format: String,
     env: 'DB_HOST',
-    default: null,
+    default: 'localhost',
+  },
+  DB_USER: {
+    doc: 'Database user',
+    format: String,
+    env: 'DB_USER',
+    default: 'admin',
+  },
+  DB_PASSWORD: {
+    doc: 'Database password',
+    format: String,
+    env: 'DB_PASSWORD',
+    default: 'test',
+  },
+  DB_NAME: {
+    doc: 'Database name',
+    format: String,
+    env: 'DB_NAME',
+    default: 'six-cities',
   },
   SALT: {
     doc: 'Salt value for hashing',
     format: String,
     env: 'SALT',
-    default: null,
+    default: 'six-cities-dev-salt',
   },
 });
 

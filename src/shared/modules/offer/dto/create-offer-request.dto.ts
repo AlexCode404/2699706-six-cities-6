@@ -1,19 +1,95 @@
-import type { Amenity } from '../../../types/amenity.enum.js';
-import type { City } from '../../../types/city.type.js';
-import type { HousingType } from '../../../types/housing-type.enum.js';
-import type { Location } from '../../../types/offer.type.js';
+import { Type } from 'class-transformer';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsString,
+  IsUrl,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { Amenity } from '../../../types/amenity.enum.js';
+import { CITY_NAMES } from '../../../types/city-names.const.js';
+import type { CityName } from '../../../types/city.type.js';
+import { HousingType } from '../../../types/housing-type.enum.js';
+
+class CityRequestDto {
+  @IsIn(CITY_NAMES)
+  public name!: CityName;
+
+  @IsNumber()
+  public latitude!: number;
+
+  @IsNumber()
+  public longitude!: number;
+}
+
+class LocationRequestDto {
+  @IsNumber()
+  public latitude!: number;
+
+  @IsNumber()
+  public longitude!: number;
+}
 
 export class CreateOfferRequestDto {
+  @IsString()
+  @MinLength(10)
+  @MaxLength(100)
   public title!: string;
+
+  @IsString()
+  @MinLength(20)
+  @MaxLength(1024)
   public description!: string;
-  public city!: City;
+
+  @ValidateNested()
+  @Type(() => CityRequestDto)
+  public city!: CityRequestDto;
+
+  @IsUrl()
   public previewImage!: string;
+
+  @IsArray()
+  @ArrayMinSize(6)
+  @ArrayMaxSize(6)
+  @IsUrl({}, { each: true })
   public images!: string[];
+
+  @IsBoolean()
   public isPremium!: boolean;
+
+  @IsEnum(HousingType)
   public type!: HousingType;
+
+  @IsInt()
+  @Min(1)
+  @Max(8)
   public bedrooms!: number;
+
+  @IsInt()
+  @Min(1)
+  @Max(10)
   public maxAdults!: number;
+
+  @IsInt()
+  @Min(100)
+  @Max(100000)
   public price!: number;
+
+  @IsArray()
+  @IsEnum(Amenity, { each: true })
   public amenities!: Amenity[];
-  public location!: Location;
+
+  @ValidateNested()
+  @Type(() => LocationRequestDto)
+  public location!: LocationRequestDto;
 }

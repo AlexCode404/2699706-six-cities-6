@@ -5,9 +5,10 @@ import { Component } from '../../container/container.types.js';
 import type { TokenService } from '../../libs/token/token-service.interface.js';
 import type { UserService } from '../../modules/user/user-service.interface.js';
 import { HttpError } from '../exceptions/http.error.js';
+import type { Middleware } from '../types/middleware.interface.js';
 
 @injectable()
-export class PrivateRouteMiddleware {
+export class PrivateRouteMiddleware implements Middleware {
   constructor(
     @inject(Component.TokenService) private readonly tokenService: TokenService,
     @inject(Component.UserService) private readonly userService: UserService

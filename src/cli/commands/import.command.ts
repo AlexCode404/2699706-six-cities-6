@@ -101,7 +101,10 @@ export class ImportCommand implements Command {
     offerService: OfferService
   ): Promise<void> {
     const existingUser = await userService.findByEmail(offer.host.email);
-    const user = existingUser ?? (await userService.create(offer.host));
+    const user = existingUser ?? (await userService.create({
+      ...offer.host,
+      password: offer.host.password ?? 'import123',
+    }));
 
     const existingCity = await cityService.findByName(offer.city.name);
     const city = existingCity ?? (await cityService.create(offer.city));

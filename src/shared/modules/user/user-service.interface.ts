@@ -6,6 +6,7 @@ export interface UserService {
   create(dto: CreateUserDto): Promise<UserDocument>;
   findById(id: string): Promise<UserDocument | null>;
   findByEmail(email: string): Promise<UserDocument | null>;
+  findAny(): Promise<UserDocument | null>;
   getFavorites(userId: string): Promise<OfferDocument[]>;
   addFavorite(userId: string, offerId: string): Promise<UserDocument | null>;
   removeFavorite(userId: string, offerId: string): Promise<UserDocument | null>;

@@ -13,7 +13,8 @@ export abstract class AbstractController implements Controller {
 
   protected addRoute(route: Route): void {
     const middlewares = route.middlewares ?? [];
-    this.router[route.method](route.path, ...middlewares, asyncHandler(route.handler));
+    const middlewareHandlers = middlewares.map((middleware) => middleware.execute.bind(middleware));
+    this.router[route.method](route.path, ...middlewareHandlers, asyncHandler(route.handler));
   }
 
   protected ok<T>(res: Response, data: T): void {

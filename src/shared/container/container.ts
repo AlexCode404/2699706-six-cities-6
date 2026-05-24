@@ -17,8 +17,11 @@ import { DefaultCommentService } from '../modules/comment/comment.service.js';
 import { TokenService } from '../libs/token/token-service.interface.js';
 import { InMemoryTokenService } from '../libs/token/in-memory-token.service.js';
 import { PrivateRouteMiddleware } from '../http/middleware/private-route.middleware.js';
+import { ValidateObjectIdMiddleware } from '../http/middleware/validate-objectid.middleware.js';
+import { ValidateDtoMiddleware } from '../http/middleware/validate-dto.middleware.js';
 import { UserController } from '../modules/user/controller/user.controller.js';
 import { OfferController } from '../modules/offer/controller/offer.controller.js';
+import { CommentController } from '../modules/comment/controller/comment.controller.js';
 import { Controller } from '../http/types/controller.interface.js';
 import { HttpExceptionFilter } from '../http/exception-filter/http-exception.filter.js';
 import { UnknownExceptionFilter } from '../http/exception-filter/unknown-exception.filter.js';
@@ -36,8 +39,11 @@ container.bind<CityService>(Component.CityService).to(DefaultCityService).inSing
 container.bind<OfferService>(Component.OfferService).to(DefaultOfferService).inSingletonScope();
 container.bind<CommentService>(Component.CommentService).to(DefaultCommentService).inSingletonScope();
 container.bind<PrivateRouteMiddleware>(Component.PrivateRouteMiddleware).to(PrivateRouteMiddleware).inSingletonScope();
+container.bind<ValidateObjectIdMiddleware>(Component.ValidateObjectIdMiddleware).to(ValidateObjectIdMiddleware).inSingletonScope();
+container.bind<ValidateDtoMiddleware>(Component.ValidateDtoMiddleware).to(ValidateDtoMiddleware).inSingletonScope();
 container.bind<Controller>(Component.UserController).to(UserController).inSingletonScope();
 container.bind<Controller>(Component.OfferController).to(OfferController).inSingletonScope();
+container.bind<Controller>(Component.CommentController).to(CommentController).inSingletonScope();
 container.bind<ExceptionFilter>(Component.HttpExceptionFilter).to(HttpExceptionFilter).inSingletonScope();
 container.bind<ExceptionFilter>(Component.UnknownExceptionFilter).to(UnknownExceptionFilter).inSingletonScope();
 

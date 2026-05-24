@@ -16,10 +16,13 @@ import { CreateOfferRequestDto } from '../dto/create-offer-request.dto.js';
 import type { CreateOfferDto } from '../dto/create-offer.dto.js';
 import { UpdateOfferRequestDto } from '../dto/update-offer-request.dto.js';
 import type { UpdateOfferDto } from '../dto/update-offer.dto.js';
-import { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
+import { OffersIndexQueryDto } from '../dto/offers-index-query.dto.js';
+import { OffersPremiumQueryDto } from '../dto/offers-premium-query.dto.js';
+import type { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
+import type { ValidateObjectIdMiddleware } from '../../../http/middleware/validate-objectid.middleware.js';
+import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
 import type { OfferDocument } from '../offer.model.js';
 import type { RequestBody } from '../../../http/types/request-params.type.js';
-import type { CityName } from '../../../types/city.type.js';
 
 @injectable()
 export class OfferController extends AbstractController {
@@ -27,25 +30,78 @@ export class OfferController extends AbstractController {
     @inject(Component.OfferService) private readonly offerService: OfferService,
     @inject(Component.CityService) private readonly cityService: CityService,
     @inject(Component.UserService) private readonly userService: UserService,
-    @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware
+    @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware,
+    @inject(Component.ValidateObjectIdMiddleware) private readonly validateObjectIdMiddleware: ValidateObjectIdMiddleware,
+    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware
   ) {
     super('/offers');
 
-    const privateHandler = this.privateRouteMiddleware.execute.bind(this.privateRouteMiddleware);
-    this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index });
-    this.addRoute({ path: '/', method: HttpMethod.Post, handler: this.create, middlewares: [privateHandler] });
-    this.addRoute({ path: '/premium', method: HttpMethod.Get, handler: this.premium });
-    this.addRoute({ path: '/favorites', method: HttpMethod.Get, handler: this.favorites, middlewares: [privateHandler] });
-    this.addRoute({ path: '/:offerId/favorite', method: HttpMethod.Post, handler: this.addFavorite, middlewares: [privateHandler] });
-    this.addRoute({ path: '/:offerId/favorite', method: HttpMethod.Delete, handler: this.removeFavorite, middlewares: [privateHandler] });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Get, handler: this.show });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Patch, handler: this.update, middlewares: [privateHandler] });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Delete, handler: this.destroy, middlewares: [privateHandler] });
+    this.addRoute({
+      path: '/',
+      method: HttpMethod.Get,
+      handler: this.index,
+      middlewares: [this.validateDtoMiddleware.execute(OffersIndexQueryDto, 'query')],
+    });
+    this.addRoute({
+      path: '/',
+      method: HttpMethod.Post,
+      handler: this.create,
+      middlewares: [
+        this.privateRouteMiddleware,
+        this.validateDtoMiddleware.execute(CreateOfferRequestDto),
+      ],
+    });
+    this.addRoute({
+      path: '/premium',
+      method: HttpMethod.Get,
+      handler: this.premium,
+      middlewares: [this.validateDtoMiddleware.execute(OffersPremiumQueryDto, 'query')],
+    });
+    this.addRoute({
+      path: '/favorites',
+      method: HttpMethod.Get,
+      handler: this.favorites,
+      middlewares: [this.privateRouteMiddleware],
+    });
+    this.addRoute({
+      path: '/:offerId/favorite',
+      method: HttpMethod.Post,
+      handler: this.addFavorite,
+      middlewares: [this.validateObjectIdMiddleware, this.privateRouteMiddleware],
+    });
+    this.addRoute({
+      path: '/:offerId/favorite',
+      method: HttpMethod.Delete,
+      handler: this.removeFavorite,
+      middlewares: [this.validateObjectIdMiddleware, this.privateRouteMiddleware],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Get,
+      handler: this.show,
+      middlewares: [this.validateObjectIdMiddleware],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Patch,
+      handler: this.update,
+      middlewares: [
+        this.validateObjectIdMiddleware,
+        this.privateRouteMiddleware,
+        this.validateDtoMiddleware.execute(UpdateOfferRequestDto),
+      ],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.delete,
+      middlewares: [this.validateObjectIdMiddleware, this.privateRouteMiddleware],
+    });
   }
 
   private index = async (req: Request, res: Response): Promise<void> => {
-    const limit = req.query.limit ? Number(req.query.limit) : undefined;
-    const offers = await this.offerService.find(limit);
+    const query = fillDTO(OffersIndexQueryDto, req.query);
+    const offers = await this.offerService.find(query.limit);
     const favoriteOfferIds = await this.getFavoriteIds(req.auth?.user.id);
     const payload = await this.toOfferPayloadList(offers, favoriteOfferIds);
     this.ok(res, fillResponseDTOArray(OfferResponse, payload));
@@ -107,7 +163,7 @@ export class OfferController extends AbstractController {
     this.ok(res, fillResponseDTO(OfferResponse, payload));
   };
 
-  private destroy = async (req: Request, res: Response): Promise<void> => {
+  private delete = async (req: Request, res: Response): Promise<void> => {
     if (!req.auth) {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Authentication required');
     }
@@ -123,8 +179,8 @@ export class OfferController extends AbstractController {
   };
 
   private premium = async (req: Request, res: Response): Promise<void> => {
-    const cityName = String(req.query.city ?? '');
-    const city = await this.cityService.findByName(cityName as CityName);
+    const query = fillDTO(OffersPremiumQueryDto, req.query);
+    const city = await this.cityService.findByName(query.city);
     if (!city) {
       throw new HttpError(StatusCodes.BAD_REQUEST, 'Invalid city name');
     }
