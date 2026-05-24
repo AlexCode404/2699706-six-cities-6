@@ -13,7 +13,8 @@ import { fillDTO, fillResponseDTO } from '../../../libs/rest/transformer.js';
 import { UserResponse } from '../dto/user.response.js';
 import { LoggedUserResponse } from '../dto/logged-user.response.js';
 import { mapUser } from './user.mapper.js';
-import { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
+import type { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
+import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
 import type { RequestBody } from '../../../http/types/request-params.type.js';
 
 @injectable()
@@ -21,7 +22,8 @@ export class UserController extends AbstractController {
   constructor(
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.TokenService) private readonly tokenService: TokenService,
-    @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware
+    @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware,
+    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware
   ) {
     super('/users');
 
@@ -29,23 +31,25 @@ export class UserController extends AbstractController {
       path: '/register',
       method: HttpMethod.Post,
       handler: this.register,
+      middlewares: [this.validateDtoMiddleware.execute(CreateUserDto)],
     });
     this.addRoute({
       path: '/login',
       method: HttpMethod.Post,
       handler: this.login,
+      middlewares: [this.validateDtoMiddleware.execute(LoginUserDto)],
     });
     this.addRoute({
       path: '/login',
       method: HttpMethod.Get,
       handler: this.checkAuth,
-      middlewares: [this.privateRouteMiddleware.execute.bind(this.privateRouteMiddleware)],
+      middlewares: [this.privateRouteMiddleware],
     });
     this.addRoute({
       path: '/logout',
       method: HttpMethod.Delete,
       handler: this.logout,
-      middlewares: [this.privateRouteMiddleware.execute.bind(this.privateRouteMiddleware)],
+      middlewares: [this.privateRouteMiddleware],
     });
   }
 

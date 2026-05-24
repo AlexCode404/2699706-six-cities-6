@@ -29,6 +29,11 @@ export class DefaultUserService implements UserService {
     return user as UserDocument | null;
   }
 
+  public async findAny(): Promise<UserDocument | null> {
+    const user = await UserModel.findOne().exec();
+    return user as UserDocument | null;
+  }
+
   public async getFavorites(userId: string): Promise<OfferDocument[]> {
     const user = await UserModel.findById(userId).exec();
 

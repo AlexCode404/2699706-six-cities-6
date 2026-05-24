@@ -15,6 +15,7 @@ export class Application {
     @inject(Component.Config) private readonly config: AppConfig,
     @inject(Component.UserController) private readonly userController: Controller,
     @inject(Component.OfferController) private readonly offerController: Controller,
+    @inject(Component.CommentController) private readonly commentController: Controller,
     @inject(Component.HttpExceptionFilter) private readonly httpExceptionFilter: ExceptionFilter,
     @inject(Component.UnknownExceptionFilter) private readonly unknownExceptionFilter: ExceptionFilter
   ) {
@@ -23,7 +24,7 @@ export class Application {
 
   public init(): void {
     this.registerMiddleware(express.json());
-    this.registerControllers(this.userController, this.offerController);
+    this.registerControllers(this.userController, this.offerController, this.commentController);
     this.registerExceptionFilters(this.httpExceptionFilter, this.unknownExceptionFilter);
 
     const port = this.config.get('PORT');
