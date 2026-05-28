@@ -19,6 +19,7 @@ import type { UpdateOfferDto } from '../dto/update-offer.dto.js';
 import { OffersIndexQueryDto } from '../dto/offers-index-query.dto.js';
 import { OffersPremiumQueryDto } from '../dto/offers-premium-query.dto.js';
 import type { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
+import type { ParseTokenMiddleware } from '../../../http/middleware/parse-token.middleware.js';
 import type { ValidateObjectIdMiddleware } from '../../../http/middleware/validate-objectid.middleware.js';
 import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
 import type { DocumentExistsMiddleware } from '../../../http/middleware/document-exists.middleware.js';
@@ -32,6 +33,7 @@ export class OfferController extends AbstractController {
     @inject(Component.CityService) private readonly cityService: CityService,
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware,
+    @inject(Component.ParseTokenMiddleware) private readonly parseTokenMiddleware: ParseTokenMiddleware,
     @inject(Component.ValidateObjectIdMiddleware) private readonly validateObjectIdMiddleware: ValidateObjectIdMiddleware,
     @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware,
     @inject(Component.DocumentExistsMiddleware) private readonly documentExistsMiddleware: DocumentExistsMiddleware
@@ -42,7 +44,10 @@ export class OfferController extends AbstractController {
       path: '/',
       method: HttpMethod.Get,
       handler: this.index,
-      middlewares: [this.validateDtoMiddleware.execute(OffersIndexQueryDto, 'query')],
+      middlewares: [
+        this.parseTokenMiddleware,
+        this.validateDtoMiddleware.execute(OffersIndexQueryDto, 'query'),
+      ],
     });
     this.addRoute({
       path: '/',
@@ -57,7 +62,10 @@ export class OfferController extends AbstractController {
       path: '/premium',
       method: HttpMethod.Get,
       handler: this.premium,
-      middlewares: [this.validateDtoMiddleware.execute(OffersPremiumQueryDto, 'query')],
+      middlewares: [
+        this.parseTokenMiddleware,
+        this.validateDtoMiddleware.execute(OffersPremiumQueryDto, 'query'),
+      ],
     });
     this.addRoute({
       path: '/favorites',
@@ -91,6 +99,7 @@ export class OfferController extends AbstractController {
       handler: this.show,
       middlewares: [
         this.validateObjectIdMiddleware,
+        this.parseTokenMiddleware,
         this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
       ],
     });

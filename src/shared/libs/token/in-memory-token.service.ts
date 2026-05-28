@@ -6,17 +6,17 @@ import type { TokenService } from './token-service.interface.js';
 export class InMemoryTokenService implements TokenService {
   private readonly tokenToUserMap = new Map<string, string>();
 
-  public createToken(userId: string): string {
+  public async createToken(userId: string): Promise<string> {
     const token = randomUUID();
     this.tokenToUserMap.set(token, userId);
     return token;
   }
 
-  public verifyToken(token: string): string | null {
+  public async verifyToken(token: string): Promise<string | null> {
     return this.tokenToUserMap.get(token) ?? null;
   }
 
-  public invalidateToken(token: string): void {
+  public async invalidateToken(token: string): Promise<void> {
     this.tokenToUserMap.delete(token);
   }
 }

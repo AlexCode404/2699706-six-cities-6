@@ -1,14 +1,12 @@
 import { inject, injectable } from 'inversify';
-import { StatusCodes } from 'http-status-codes';
 import type { NextFunction, Request, Response } from 'express';
 import { Component } from '../../container/container.types.js';
 import type { TokenService } from '../../libs/token/token-service.interface.js';
 import type { UserService } from '../../modules/user/user-service.interface.js';
-import { HttpError } from '../exceptions/http.error.js';
 import type { Middleware } from '../types/middleware.interface.js';
 
 @injectable()
-export class PrivateRouteMiddleware implements Middleware {
+export class ParseTokenMiddleware implements Middleware {
   constructor(
     @inject(Component.TokenService) private readonly tokenService: TokenService,
     @inject(Component.UserService) private readonly userService: UserService
@@ -18,30 +16,28 @@ export class PrivateRouteMiddleware implements Middleware {
     const authorizationHeader = req.header('Authorization');
 
     if (!authorizationHeader) {
-      next(new HttpError(StatusCodes.UNAUTHORIZED, 'Authorization header is missing'));
+      next();
       return;
     }
 
     const [scheme, token] = authorizationHeader.split(' ');
 
     if (scheme !== 'Bearer' || !token) {
-      next(new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid authorization header format'));
+      next();
       return;
     }
 
     const userId = await this.tokenService.verifyToken(token);
     if (!userId) {
-      next(new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid token'));
+      next();
       return;
     }
 
     const user = await this.userService.findById(userId);
-    if (!user) {
-      next(new HttpError(StatusCodes.UNAUTHORIZED, 'Token user not found'));
-      return;
+    if (user) {
+      req.auth = { token, user };
     }
 
-    req.auth = { token, user };
     next();
   }
 }

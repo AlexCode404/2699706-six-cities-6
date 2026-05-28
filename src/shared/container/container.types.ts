@@ -7,6 +7,7 @@ export const Component = {
   DatabaseClient: Symbol.for('DatabaseClient'),
   TokenService: Symbol.for('TokenService'),
   PrivateRouteMiddleware: Symbol.for('PrivateRouteMiddleware'),
+  ParseTokenMiddleware: Symbol.for('ParseTokenMiddleware'),
   ValidateObjectIdMiddleware: Symbol.for('ValidateObjectIdMiddleware'),
   ValidateDtoMiddleware: Symbol.for('ValidateDtoMiddleware'),
   DocumentExistsMiddleware: Symbol.for('DocumentExistsMiddleware'),

@@ -4,6 +4,7 @@ import type { CreateUserDto } from './dto/create-user.dto.js';
 
 export interface UserService {
   create(dto: CreateUserDto): Promise<UserDocument>;
+  verifyPassword(password: string, hashedPassword?: string): Promise<boolean>;
   findById(id: string): Promise<UserDocument | null>;
   findByEmail(email: string): Promise<UserDocument | null>;
   findAny(): Promise<UserDocument | null>;
