@@ -1,8 +1,9 @@
 import type { OfferDocument } from './offer.model.js';
 import type { CreateOfferDto } from './dto/create-offer.dto.js';
 import type { UpdateOfferDto } from './dto/update-offer.dto.js';
+import type { DocumentExists } from '../../libs/document-exists/document-exists.interface.js';
 
-export interface OfferService {
+export interface OfferService extends DocumentExists {
   create(dto: CreateOfferDto): Promise<OfferDocument>;
   findById(id: string): Promise<OfferDocument | null>;
   find(limit?: number): Promise<OfferDocument[]>;

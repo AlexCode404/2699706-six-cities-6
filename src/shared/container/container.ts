@@ -19,6 +19,8 @@ import { InMemoryTokenService } from '../libs/token/in-memory-token.service.js';
 import { PrivateRouteMiddleware } from '../http/middleware/private-route.middleware.js';
 import { ValidateObjectIdMiddleware } from '../http/middleware/validate-objectid.middleware.js';
 import { ValidateDtoMiddleware } from '../http/middleware/validate-dto.middleware.js';
+import { DocumentExistsMiddleware } from '../http/middleware/document-exists.middleware.js';
+import { UploadFileMiddleware } from '../http/middleware/upload-file.middleware.js';
 import { UserController } from '../modules/user/controller/user.controller.js';
 import { OfferController } from '../modules/offer/controller/offer.controller.js';
 import { CommentController } from '../modules/comment/controller/comment.controller.js';
@@ -41,6 +43,8 @@ container.bind<CommentService>(Component.CommentService).to(DefaultCommentServic
 container.bind<PrivateRouteMiddleware>(Component.PrivateRouteMiddleware).to(PrivateRouteMiddleware).inSingletonScope();
 container.bind<ValidateObjectIdMiddleware>(Component.ValidateObjectIdMiddleware).to(ValidateObjectIdMiddleware).inSingletonScope();
 container.bind<ValidateDtoMiddleware>(Component.ValidateDtoMiddleware).to(ValidateDtoMiddleware).inSingletonScope();
+container.bind<DocumentExistsMiddleware>(Component.DocumentExistsMiddleware).to(DocumentExistsMiddleware).inSingletonScope();
+container.bind<UploadFileMiddleware>(Component.UploadFileMiddleware).to(UploadFileMiddleware).inSingletonScope();
 container.bind<Controller>(Component.UserController).to(UserController).inSingletonScope();
 container.bind<Controller>(Component.OfferController).to(OfferController).inSingletonScope();
 container.bind<Controller>(Component.CommentController).to(CommentController).inSingletonScope();

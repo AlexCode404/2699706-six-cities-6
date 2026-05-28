@@ -4,6 +4,7 @@ declare global {
   namespace Express {
     interface Request {
       auth?: AuthorizedRequest;
+      file?: Express.Multer.File;
     }
   }
 }

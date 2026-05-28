@@ -28,6 +28,11 @@ export class DefaultOfferService implements OfferService {
     return offer as OfferDocument | null;
   }
 
+  public async exists(id: string): Promise<boolean> {
+    const result = await OfferModel.exists({ _id: id }).exec();
+    return result !== null;
+  }
+
   public async find(limit: number = DEFAULT_OFFER_LIMIT): Promise<OfferDocument[]> {
     const offers = await OfferModel.find()
       .sort({ postDate: -1 })

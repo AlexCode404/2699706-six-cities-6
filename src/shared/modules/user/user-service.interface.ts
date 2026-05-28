@@ -10,4 +10,5 @@ export interface UserService {
   getFavorites(userId: string): Promise<OfferDocument[]>;
   addFavorite(userId: string, offerId: string): Promise<UserDocument | null>;
   removeFavorite(userId: string, offerId: string): Promise<UserDocument | null>;
+  updateAvatarPath(userId: string, avatarPath: string): Promise<UserDocument | null>;
 }

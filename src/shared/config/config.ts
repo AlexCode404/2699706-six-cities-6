@@ -12,6 +12,7 @@ type AppConfigSchema = {
   DB_PASSWORD: string;
   DB_NAME: string;
   SALT: string;
+  UPLOAD_DIRECTORY: string;
 };
 
 const appConfig = convict<AppConfigSchema>({
@@ -50,6 +51,12 @@ const appConfig = convict<AppConfigSchema>({
     format: String,
     env: 'SALT',
     default: 'six-cities-dev-salt',
+  },
+  UPLOAD_DIRECTORY: {
+    doc: 'Directory for uploaded files',
+    format: String,
+    env: 'UPLOAD_DIRECTORY',
+    default: 'upload',
   },
 });
 

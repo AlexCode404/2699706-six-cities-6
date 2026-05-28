@@ -9,6 +9,8 @@ export const Component = {
   PrivateRouteMiddleware: Symbol.for('PrivateRouteMiddleware'),
   ValidateObjectIdMiddleware: Symbol.for('ValidateObjectIdMiddleware'),
   ValidateDtoMiddleware: Symbol.for('ValidateDtoMiddleware'),
+  DocumentExistsMiddleware: Symbol.for('DocumentExistsMiddleware'),
+  UploadFileMiddleware: Symbol.for('UploadFileMiddleware'),
   UserController: Symbol.for('UserController'),
   OfferController: Symbol.for('OfferController'),
   CommentController: Symbol.for('CommentController'),

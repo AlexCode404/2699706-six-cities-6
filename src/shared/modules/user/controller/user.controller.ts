@@ -15,6 +15,7 @@ import { LoggedUserResponse } from '../dto/logged-user.response.js';
 import { mapUser } from './user.mapper.js';
 import type { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
 import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
+import type { UploadFileMiddleware } from '../../../http/middleware/upload-file.middleware.js';
 import type { RequestBody } from '../../../http/types/request-params.type.js';
 
 @injectable()
@@ -23,7 +24,8 @@ export class UserController extends AbstractController {
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.TokenService) private readonly tokenService: TokenService,
     @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware,
-    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware
+    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware,
+    @inject(Component.UploadFileMiddleware) private readonly uploadFileMiddleware: UploadFileMiddleware
   ) {
     super('/users');
 
@@ -50,6 +52,15 @@ export class UserController extends AbstractController {
       method: HttpMethod.Delete,
       handler: this.logout,
       middlewares: [this.privateRouteMiddleware],
+    });
+    this.addRoute({
+      path: '/avatar',
+      method: HttpMethod.Post,
+      handler: this.uploadAvatar,
+      middlewares: [
+        this.privateRouteMiddleware,
+        this.uploadFileMiddleware.single('avatar'),
+      ],
     });
   }
 
@@ -95,5 +106,25 @@ export class UserController extends AbstractController {
 
     this.tokenService.invalidateToken(req.auth.token);
     this.noContent(res);
+  };
+
+  private uploadAvatar = async (req: Request, res: Response): Promise<void> => {
+    if (!req.auth) {
+      throw new HttpError(StatusCodes.UNAUTHORIZED, 'Authentication required');
+    }
+
+    if (!req.file) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Avatar file is required');
+    }
+
+    const avatarPath = `/upload/${req.file.filename}`;
+    const user = await this.userService.updateAvatarPath(req.auth.user.id, avatarPath);
+
+    if (!user) {
+      throw new HttpError(StatusCodes.NOT_FOUND, 'User not found');
+    }
+
+    const responseDto = fillResponseDTO(UserResponse, mapUser(user));
+    this.ok(res, responseDto);
   };
 }
