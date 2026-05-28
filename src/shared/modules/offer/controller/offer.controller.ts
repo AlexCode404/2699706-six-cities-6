@@ -21,6 +21,7 @@ import { OffersPremiumQueryDto } from '../dto/offers-premium-query.dto.js';
 import type { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
 import type { ValidateObjectIdMiddleware } from '../../../http/middleware/validate-objectid.middleware.js';
 import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
+import type { DocumentExistsMiddleware } from '../../../http/middleware/document-exists.middleware.js';
 import type { OfferDocument } from '../offer.model.js';
 import type { RequestBody } from '../../../http/types/request-params.type.js';
 
@@ -32,7 +33,8 @@ export class OfferController extends AbstractController {
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.PrivateRouteMiddleware) private readonly privateRouteMiddleware: PrivateRouteMiddleware,
     @inject(Component.ValidateObjectIdMiddleware) private readonly validateObjectIdMiddleware: ValidateObjectIdMiddleware,
-    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware
+    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware,
+    @inject(Component.DocumentExistsMiddleware) private readonly documentExistsMiddleware: DocumentExistsMiddleware
   ) {
     super('/offers');
 
@@ -67,19 +69,30 @@ export class OfferController extends AbstractController {
       path: '/:offerId/favorite',
       method: HttpMethod.Post,
       handler: this.addFavorite,
-      middlewares: [this.validateObjectIdMiddleware, this.privateRouteMiddleware],
+      middlewares: [
+        this.validateObjectIdMiddleware,
+        this.privateRouteMiddleware,
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
+      ],
     });
     this.addRoute({
       path: '/:offerId/favorite',
       method: HttpMethod.Delete,
       handler: this.removeFavorite,
-      middlewares: [this.validateObjectIdMiddleware, this.privateRouteMiddleware],
+      middlewares: [
+        this.validateObjectIdMiddleware,
+        this.privateRouteMiddleware,
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
+      ],
     });
     this.addRoute({
       path: '/:offerId',
       method: HttpMethod.Get,
       handler: this.show,
-      middlewares: [this.validateObjectIdMiddleware],
+      middlewares: [
+        this.validateObjectIdMiddleware,
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
+      ],
     });
     this.addRoute({
       path: '/:offerId',
@@ -89,13 +102,18 @@ export class OfferController extends AbstractController {
         this.validateObjectIdMiddleware,
         this.privateRouteMiddleware,
         this.validateDtoMiddleware.execute(UpdateOfferRequestDto),
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
       ],
     });
     this.addRoute({
       path: '/:offerId',
       method: HttpMethod.Delete,
       handler: this.delete,
-      middlewares: [this.validateObjectIdMiddleware, this.privateRouteMiddleware],
+      middlewares: [
+        this.validateObjectIdMiddleware,
+        this.privateRouteMiddleware,
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
+      ],
     });
   }
 
@@ -131,10 +149,7 @@ export class OfferController extends AbstractController {
 
   private show = async (req: Request, res: Response): Promise<void> => {
     const offerId = this.getOfferId(req);
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
-    }
+    const offer = await this.offerService.findById(offerId) as OfferDocument;
 
     const favoriteOfferIds = await this.getFavoriteIds(req.auth?.user.id);
     const payload = await this.toOfferPayload(offer, favoriteOfferIds);
@@ -153,10 +168,7 @@ export class OfferController extends AbstractController {
     }
 
     const dto = fillDTO(UpdateOfferRequestDto, req.body as RequestBody<UpdateOfferRequestDto>);
-    const updatedOffer = await this.offerService.updateById(offerId, dto as UpdateOfferDto);
-    if (!updatedOffer) {
-      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
-    }
+    const updatedOffer = await this.offerService.updateById(offerId, dto as UpdateOfferDto) as OfferDocument;
 
     const favoriteOfferIds = await this.getFavoriteIds(req.auth.user.id);
     const payload = await this.toOfferPayload(updatedOffer, favoriteOfferIds);
@@ -216,10 +228,6 @@ export class OfferController extends AbstractController {
     }
 
     const offerId = this.getOfferId(req);
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
-    }
 
     if (shouldAdd) {
       await this.userService.addFavorite(req.auth.user.id, offerId);
@@ -227,6 +235,7 @@ export class OfferController extends AbstractController {
       await this.userService.removeFavorite(req.auth.user.id, offerId);
     }
 
+    const offer = await this.offerService.findById(offerId) as OfferDocument;
     const favoriteOfferIds = await this.getFavoriteIds(req.auth.user.id);
     const payload = await this.toOfferPayload(offer, favoriteOfferIds);
     this.ok(res, fillResponseDTO(OfferResponse, payload));

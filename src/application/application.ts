@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify';
-import express, { type Express, type RequestHandler } from 'express';
+import express, { type Express } from 'express';
 import { Component } from '../shared/container/container.types.js';
 import { Logger } from '../shared/libs/logger/logger.interface.js';
 import { AppConfig } from '../shared/config/config.js';
@@ -23,7 +23,8 @@ export class Application {
   }
 
   public init(): void {
-    this.registerMiddleware(express.json());
+    this.app.use(express.json());
+    this.app.use('/upload', express.static(this.config.get('UPLOAD_DIRECTORY')));
     this.registerControllers(this.userController, this.offerController, this.commentController);
     this.registerExceptionFilters(this.httpExceptionFilter, this.unknownExceptionFilter);
 
@@ -33,10 +34,6 @@ export class Application {
     });
 
     this.logger.info('Application initialized');
-  }
-
-  private registerMiddleware(...middlewares: RequestHandler[]): void {
-    middlewares.forEach((middleware) => this.app.use(middleware));
   }
 
   private registerControllers(...controllers: Controller[]): void {

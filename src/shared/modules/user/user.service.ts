@@ -66,4 +66,13 @@ export class DefaultUserService implements UserService {
     ).exec();
     return user as UserDocument | null;
   }
+
+  public async updateAvatarPath(userId: string, avatarPath: string): Promise<UserDocument | null> {
+    const user = await UserModel.findByIdAndUpdate(
+      userId,
+      { avatarPath },
+      { new: true }
+    ).exec();
+    return user as UserDocument | null;
+  }
 }

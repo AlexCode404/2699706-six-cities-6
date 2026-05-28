@@ -14,6 +14,7 @@ import { CommentResponse } from '../dto/comment.response.js';
 import { mapComment } from './comment.mapper.js';
 import type { ValidateObjectIdMiddleware } from '../../../http/middleware/validate-objectid.middleware.js';
 import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
+import type { DocumentExistsMiddleware } from '../../../http/middleware/document-exists.middleware.js';
 import type { CreateCommentDto } from '../dto/create-comment.dto.js';
 import type { CommentDocument } from '../comment.model.js';
 
@@ -24,7 +25,8 @@ export class CommentController extends AbstractController {
     @inject(Component.OfferService) private readonly offerService: OfferService,
     @inject(Component.UserService) private readonly userService: UserService,
     @inject(Component.ValidateObjectIdMiddleware) private readonly validateObjectIdMiddleware: ValidateObjectIdMiddleware,
-    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware
+    @inject(Component.ValidateDtoMiddleware) private readonly validateDtoMiddleware: ValidateDtoMiddleware,
+    @inject(Component.DocumentExistsMiddleware) private readonly documentExistsMiddleware: DocumentExistsMiddleware
   ) {
     super('/comments');
 
@@ -32,7 +34,10 @@ export class CommentController extends AbstractController {
       path: '/:offerId',
       method: HttpMethod.Get,
       handler: this.index,
-      middlewares: [this.validateObjectIdMiddleware],
+      middlewares: [
+        this.validateObjectIdMiddleware,
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
+      ],
     });
     this.addRoute({
       path: '/:offerId',
@@ -41,17 +46,13 @@ export class CommentController extends AbstractController {
       middlewares: [
         this.validateObjectIdMiddleware,
         this.validateDtoMiddleware.execute(CreateCommentRequestDto),
+        this.documentExistsMiddleware.execute(this.offerService, 'offerId', 'Offer not found'),
       ],
     });
   }
 
   private index = async (req: Request, res: Response): Promise<void> => {
     const offerId = this.getOfferId(req);
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
-    }
-
     const comments = await this.commentService.findByOfferId(offerId);
     const payload = await this.toCommentPayloadList(comments);
     this.ok(res, fillResponseDTOArray(CommentResponse, payload));
@@ -59,11 +60,6 @@ export class CommentController extends AbstractController {
 
   private create = async (req: Request, res: Response): Promise<void> => {
     const offerId = this.getOfferId(req);
-    const offer = await this.offerService.findById(offerId);
-    if (!offer) {
-      throw new HttpError(StatusCodes.NOT_FOUND, 'Offer not found');
-    }
-
     const dto = fillDTO(CreateCommentRequestDto, req.body);
     const userId = await this.resolveAuthorId(req);
     const comment = await this.commentService.create(userId, offerId, dto as CreateCommentDto);
