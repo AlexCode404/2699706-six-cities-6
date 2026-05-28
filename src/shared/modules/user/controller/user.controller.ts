@@ -11,7 +11,7 @@ import { LoginUserDto } from '../dto/login-user.dto.js';
 import type { TokenService } from '../../../libs/token/token-service.interface.js';
 import { fillDTO, fillResponseDTO } from '../../../libs/rest/transformer.js';
 import { UserResponse } from '../dto/user.response.js';
-import { LoggedUserResponse } from '../dto/logged-user.response.js';
+import { AuthTokenResponse } from '../dto/auth-token.response.js';
 import { mapUser } from './user.mapper.js';
 import type { PrivateRouteMiddleware } from '../../../http/middleware/private-route.middleware.js';
 import type { ValidateDtoMiddleware } from '../../../http/middleware/validate-dto.middleware.js';
@@ -81,12 +81,12 @@ export class UserController extends AbstractController {
     const dto = fillDTO(LoginUserDto, req.body);
     const user = await this.userService.findByEmail(dto.email);
 
-    if (!user || user.password !== dto.password) {
+    if (!user || !(await this.userService.verifyPassword(dto.password, user.password ?? undefined))) {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid credentials');
     }
 
-    const token = this.tokenService.createToken(user.id);
-    const responseDto = fillResponseDTO(LoggedUserResponse, { ...mapUser(user), token });
+    const token = await this.tokenService.createToken(user.id);
+    const responseDto = fillResponseDTO(AuthTokenResponse, { token });
     this.ok(res, responseDto);
   };
 
@@ -104,7 +104,7 @@ export class UserController extends AbstractController {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Authentication required');
     }
 
-    this.tokenService.invalidateToken(req.auth.token);
+    await this.tokenService.invalidateToken(req.auth.token);
     this.noContent(res);
   };
 

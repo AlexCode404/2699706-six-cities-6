@@ -1,22 +1,40 @@
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { Types } from 'mongoose';
+import bcrypt from 'bcrypt';
 import { UserModel } from './user.model.js';
 import type { UserDocument } from './user.model.js';
 import type { UserService } from './user-service.interface.js';
 import type { CreateUserDto } from './dto/create-user.dto.js';
 import { OfferModel } from '../offer/offer.model.js';
 import type { OfferDocument } from '../offer/offer.model.js';
+import { Component } from '../../container/container.types.js';
+import type { AppConfig } from '../../config/config.js';
+
+const SALT_ROUNDS = 10;
 
 @injectable()
 export class DefaultUserService implements UserService {
+  constructor(
+    @inject(Component.Config) private readonly config: AppConfig
+  ) {}
+
   public async create(dto: CreateUserDto): Promise<UserDocument> {
     const createdUser = await UserModel.create({
       ...dto,
+      password: await this.hashPassword(dto.password),
       avatarPath: dto.avatarPath ?? '',
       favorites: [],
     });
 
     return createdUser as UserDocument;
+  }
+
+  public async verifyPassword(password: string, hashedPassword?: string): Promise<boolean> {
+    if (!hashedPassword) {
+      return false;
+    }
+
+    return bcrypt.compare(this.getPepperedPassword(password), hashedPassword);
   }
 
   public async findById(id: string): Promise<UserDocument | null> {
@@ -74,5 +92,13 @@ export class DefaultUserService implements UserService {
       { new: true }
     ).exec();
     return user as UserDocument | null;
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(this.getPepperedPassword(password), SALT_ROUNDS);
+  }
+
+  private getPepperedPassword(password: string): string {
+    return `${password}${this.config.get('SALT')}`;
   }
 }

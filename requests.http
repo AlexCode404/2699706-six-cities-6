@@ -1,14 +1,104 @@
 @host = http://localhost:4000
 @token = {{login.response.body.token}}
 
+### Register
+POST {{host}}/api/users/register
+Content-Type: application/json
+
+{
+  "name": "Alex",
+  "email": "alex@example.com",
+  "password": "123456",
+  "type": "ordinary"
+}
+
 ### Login
 # @name login
 POST {{host}}/api/users/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "alex@example.com",
   "password": "123456"
+}
+
+### Check auth
+GET {{host}}/api/users/login
+Authorization: Bearer {{token}}
+
+### Logout
+DELETE {{host}}/api/users/logout
+Authorization: Bearer {{token}}
+
+### Get offers (anonymous)
+GET {{host}}/api/offers
+
+### Get offers (authenticated, isFavorite computed)
+GET {{host}}/api/offers
+Authorization: Bearer {{token}}
+
+### Get offer by id
+GET {{host}}/api/offers/{{offerId}}
+Authorization: Bearer {{token}}
+
+### Get premium offers
+GET {{host}}/api/offers/premium?city=Paris
+Authorization: Bearer {{token}}
+
+### Get favorites
+GET {{host}}/api/offers/favorites
+Authorization: Bearer {{token}}
+
+### Add to favorites
+POST {{host}}/api/offers/{{offerId}}/favorite
+Authorization: Bearer {{token}}
+
+### Remove from favorites
+DELETE {{host}}/api/offers/{{offerId}}/favorite
+Authorization: Bearer {{token}}
+
+### Create offer
+POST {{host}}/api/offers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Cozy studio in city center",
+  "description": "Fresh renovation, fully equipped kitchen and fast Wi-Fi.",
+  "city": {
+    "name": "Paris",
+    "latitude": 48.85661,
+    "longitude": 2.351499
+  },
+  "previewImage": "https://images.example.com/preview-1.jpg",
+  "images": [
+    "https://images.example.com/1.jpg",
+    "https://images.example.com/2.jpg",
+    "https://images.example.com/3.jpg",
+    "https://images.example.com/4.jpg",
+    "https://images.example.com/5.jpg",
+    "https://images.example.com/6.jpg"
+  ],
+  "isPremium": false,
+  "type": "apartment",
+  "bedrooms": 2,
+  "maxAdults": 4,
+  "price": 1200,
+  "amenities": ["Breakfast", "Air conditioning"],
+  "location": {
+    "latitude": 48.85661,
+    "longitude": 2.351499
+  }
+}
+
+### Create comment
+POST {{host}}/api/comments/{{offerId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "text": "Great apartment, clean and well located.",
+  "rating": 5
 }
 
 ### Upload avatar
