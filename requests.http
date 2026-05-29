@@ -67,8 +67,10 @@ Content-Type: application/json
   "description": "Fresh renovation, fully equipped kitchen and fast Wi-Fi.",
   "city": {
     "name": "Paris",
-    "latitude": 48.85661,
-    "longitude": 2.351499
+    "location": {
+      "latitude": 48.85661,
+      "longitude": 2.351499
+    }
   },
   "previewImage": "https://images.example.com/preview-1.jpg",
   "images": [
@@ -90,6 +92,22 @@ Content-Type: application/json
     "longitude": 2.351499
   }
 }
+
+### Get comments
+GET {{host}}/api/comments/{{offerId}}
+
+### Update offer
+PATCH {{host}}/api/offers/{{offerId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated cozy studio in city center"
+}
+
+### Delete offer
+DELETE {{host}}/api/offers/{{offerId}}
+Authorization: Bearer {{token}}
 
 ### Create comment
 POST {{host}}/api/comments/{{offerId}}

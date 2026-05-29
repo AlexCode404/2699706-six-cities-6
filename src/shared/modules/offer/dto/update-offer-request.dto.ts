@@ -22,10 +22,7 @@ import { CITY_NAMES } from '../../../types/city-names.const.js';
 import type { CityName } from '../../../types/city.type.js';
 import { HousingType } from '../../../types/housing-type.enum.js';
 
-class CityRequestDto {
-  @IsIn(CITY_NAMES)
-  public name!: CityName;
-
+class LocationRequestDto {
   @IsNumber()
   public latitude!: number;
 
@@ -33,12 +30,13 @@ class CityRequestDto {
   public longitude!: number;
 }
 
-class LocationRequestDto {
-  @IsNumber()
-  public latitude!: number;
+class CityRequestDto {
+  @IsIn(CITY_NAMES)
+  public name!: CityName;
 
-  @IsNumber()
-  public longitude!: number;
+  @ValidateNested()
+  @Type(() => LocationRequestDto)
+  public location!: LocationRequestDto;
 }
 
 export class UpdateOfferRequestDto {

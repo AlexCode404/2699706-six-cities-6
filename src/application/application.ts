@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify';
+import cors from 'cors';
 import express, { type Express } from 'express';
 import { Component } from '../shared/container/container.types.js';
 import { Logger } from '../shared/libs/logger/logger.interface.js';
@@ -23,6 +24,7 @@ export class Application {
   }
 
   public init(): void {
+    this.app.use(cors());
     this.app.use(express.json());
     this.app.use('/upload', express.static(this.config.get('UPLOAD_DIRECTORY')));
     this.registerControllers(this.userController, this.offerController, this.commentController);

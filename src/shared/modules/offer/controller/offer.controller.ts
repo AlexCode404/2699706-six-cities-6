@@ -8,7 +8,8 @@ import { Component } from '../../../container/container.types.js';
 import { HttpError } from '../../../http/exceptions/http.error.js';
 import { fillDTO, fillResponseDTO, fillResponseDTOArray } from '../../../libs/rest/transformer.js';
 import { OfferResponse } from '../dto/offer.response.js';
-import { mapOffer } from './offer.mapper.js';
+import { OfferPreviewResponse } from '../dto/offer-preview.response.js';
+import { mapOffer, mapOfferPreview } from './offer.mapper.js';
 import type { OfferService } from '../offer-service.interface.js';
 import type { UserService } from '../../user/user-service.interface.js';
 import type { CityService } from '../../city/city-service.interface.js';
@@ -130,8 +131,8 @@ export class OfferController extends AbstractController {
     const query = fillDTO(OffersIndexQueryDto, req.query);
     const offers = await this.offerService.find(query.limit);
     const favoriteOfferIds = await this.getFavoriteIds(req.auth?.user.id);
-    const payload = await this.toOfferPayloadList(offers, favoriteOfferIds);
-    this.ok(res, fillResponseDTOArray(OfferResponse, payload));
+    const payload = await this.toOfferPreviewPayloadList(offers, favoriteOfferIds);
+    this.ok(res, fillResponseDTOArray(OfferPreviewResponse, payload));
   };
 
   private create = async (req: Request<unknown, unknown, RequestBody<CreateOfferRequestDto>>, res: Response): Promise<void> => {
@@ -142,7 +143,11 @@ export class OfferController extends AbstractController {
     const dto = fillDTO(CreateOfferRequestDto, req.body);
     let city = await this.cityService.findByName(dto.city.name);
     if (!city) {
-      city = await this.cityService.create(dto.city);
+      city = await this.cityService.create({
+        name: dto.city.name,
+        latitude: dto.city.location.latitude,
+        longitude: dto.city.location.longitude,
+      });
     }
 
     const createDto: CreateOfferDto = {
@@ -177,7 +182,17 @@ export class OfferController extends AbstractController {
     }
 
     const dto = fillDTO(UpdateOfferRequestDto, req.body as RequestBody<UpdateOfferRequestDto>);
-    const updatedOffer = await this.offerService.updateById(offerId, dto as UpdateOfferDto) as OfferDocument;
+    const updateDto: UpdateOfferDto = {
+      ...dto,
+      city: dto.city
+        ? {
+          name: dto.city.name,
+          latitude: dto.city.location.latitude,
+          longitude: dto.city.location.longitude,
+        }
+        : undefined,
+    };
+    const updatedOffer = await this.offerService.updateById(offerId, updateDto) as OfferDocument;
 
     const favoriteOfferIds = await this.getFavoriteIds(req.auth.user.id);
     const payload = await this.toOfferPayload(updatedOffer, favoriteOfferIds);
@@ -208,8 +223,8 @@ export class OfferController extends AbstractController {
 
     const offers = await this.offerService.findPremiumByCity(city.id);
     const favoriteOfferIds = await this.getFavoriteIds(req.auth?.user.id);
-    const payload = await this.toOfferPayloadList(offers, favoriteOfferIds);
-    this.ok(res, fillResponseDTOArray(OfferResponse, payload));
+    const payload = await this.toOfferPreviewPayloadList(offers, favoriteOfferIds);
+    this.ok(res, fillResponseDTOArray(OfferPreviewResponse, payload));
   };
 
   private favorites = async (req: Request, res: Response): Promise<void> => {
@@ -219,8 +234,8 @@ export class OfferController extends AbstractController {
 
     const offers = await this.userService.getFavorites(req.auth.user.id);
     const favoriteOfferIds = await this.getFavoriteIds(req.auth.user.id);
-    const payload = await this.toOfferPayloadList(offers, favoriteOfferIds);
-    this.ok(res, fillResponseDTOArray(OfferResponse, payload));
+    const payload = await this.toOfferPreviewPayloadList(offers, favoriteOfferIds);
+    this.ok(res, fillResponseDTOArray(OfferPreviewResponse, payload));
   };
 
   private addFavorite = async (req: Request, res: Response): Promise<void> => {
@@ -250,13 +265,19 @@ export class OfferController extends AbstractController {
     this.ok(res, fillResponseDTO(OfferResponse, payload));
   }
 
-  private async toOfferPayloadList(offers: OfferDocument[], favoriteOfferIds: Set<string>) {
+  private async toOfferPreviewPayloadList(offers: OfferDocument[], favoriteOfferIds: Set<string>) {
     const payload: unknown[] = [];
     for (const offer of offers) {
-      payload.push(await this.toOfferPayload(offer, favoriteOfferIds));
+      payload.push(await this.toOfferPreviewPayload(offer, favoriteOfferIds));
     }
 
     return payload;
+  }
+
+  private async toOfferPreviewPayload(offer: OfferDocument, favoriteOfferIds: Set<string>) {
+    const populatableOffer = offer as unknown as { populate(path: string): Promise<unknown> };
+    await populatableOffer.populate('city');
+    return mapOfferPreview(offer, favoriteOfferIds);
   }
 
   private async toOfferPayload(offer: OfferDocument, favoriteOfferIds: Set<string>) {
