@@ -30,11 +30,23 @@ export class DefaultUserService implements UserService {
   }
 
   public async verifyPassword(password: string, hashedPassword?: string): Promise<boolean> {
-    if (!hashedPassword) {
+    if (typeof hashedPassword !== 'string' || hashedPassword.length === 0) {
       return false;
     }
 
-    return bcrypt.compare(this.getPepperedPassword(password), hashedPassword);
+    const isBcryptHash = hashedPassword.startsWith('$2a$')
+      || hashedPassword.startsWith('$2b$')
+      || hashedPassword.startsWith('$2y$');
+
+    if (!isBcryptHash) {
+      return hashedPassword === password;
+    }
+
+    try {
+      return await bcrypt.compare(this.getPepperedPassword(password), hashedPassword);
+    } catch {
+      return false;
+    }
   }
 
   public async findById(id: string): Promise<UserDocument | null> {

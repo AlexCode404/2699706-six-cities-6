@@ -81,11 +81,20 @@ export class UserController extends AbstractController {
     const dto = fillDTO(LoginUserDto, req.body);
     const user = await this.userService.findByEmail(dto.email);
 
-    if (!user || !(await this.userService.verifyPassword(dto.password, user.password ?? undefined))) {
+    if (!user) {
       throw new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid credentials');
     }
 
-    const token = await this.tokenService.createToken(user.id);
+    const isPasswordValid = await this.userService.verifyPassword(
+      dto.password,
+      typeof user.password === 'string' ? user.password : undefined
+    );
+
+    if (!isPasswordValid) {
+      throw new HttpError(StatusCodes.UNAUTHORIZED, 'Invalid credentials');
+    }
+
+    const token = await this.tokenService.createToken(String(user.id));
     const responseDto = fillResponseDTO(AuthTokenResponse, { token });
     this.ok(res, responseDto);
   };

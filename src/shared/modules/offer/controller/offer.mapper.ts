@@ -5,8 +5,10 @@ type OfferPayload = {
   postDate: string;
   city: {
     name: string;
-    latitude: number;
-    longitude: number;
+    location: {
+      latitude: number;
+      longitude: number;
+    };
   };
   previewImage: string;
   images: string[];
@@ -31,6 +33,11 @@ type OfferPayload = {
     longitude: number;
   };
 };
+
+type OfferPreviewPayload = Pick<
+  OfferPayload,
+  'id' | 'title' | 'type' | 'price' | 'city' | 'previewImage' | 'isPremium' | 'isFavorite' | 'rating' | 'postDate' | 'commentCount'
+>;
 
 type OfferMappingSource = {
   id: string;
@@ -62,8 +69,10 @@ export function mapOffer(offer: unknown, favoriteOfferIds: Set<string>): OfferPa
     postDate: source.postDate.toISOString(),
     city: {
       name: source.city.name,
-      latitude: source.city.latitude,
-      longitude: source.city.longitude,
+      location: {
+        latitude: source.city.latitude,
+        longitude: source.city.longitude,
+      },
     },
     previewImage: source.previewImage,
     images: source.images,
@@ -87,5 +96,23 @@ export function mapOffer(offer: unknown, favoriteOfferIds: Set<string>): OfferPa
       latitude: source.location.latitude,
       longitude: source.location.longitude,
     },
+  };
+}
+
+export function mapOfferPreview(offer: unknown, favoriteOfferIds: Set<string>): OfferPreviewPayload {
+  const payload = mapOffer(offer, favoriteOfferIds);
+
+  return {
+    id: payload.id,
+    title: payload.title,
+    type: payload.type,
+    price: payload.price,
+    city: payload.city,
+    previewImage: payload.previewImage,
+    isPremium: payload.isPremium,
+    isFavorite: payload.isFavorite,
+    rating: payload.rating,
+    postDate: payload.postDate,
+    commentCount: payload.commentCount,
   };
 }

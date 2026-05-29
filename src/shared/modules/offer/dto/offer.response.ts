@@ -11,9 +11,13 @@ class CoordinatesResponse {
   public longitude!: number;
 }
 
-class CityResponse extends CoordinatesResponse {
+class CityResponse {
   @Expose()
   public name!: string;
+
+  @Expose()
+  @Type(() => CoordinatesResponse)
+  public location!: CoordinatesResponse;
 }
 
 class HostResponse {

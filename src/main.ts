@@ -15,8 +15,11 @@ function getMongoUri(
     return host;
   }
 
-  if (user && password && dbName) {
-    return `mongodb://${user}:${password}@${host}/${dbName}?authSource=admin`;
+  const dbUser = user?.trim();
+  const dbPassword = password?.trim();
+
+  if (dbUser && dbPassword && dbName) {
+    return `mongodb://${dbUser}:${dbPassword}@${host}/${dbName}?authSource=admin`;
   }
 
   if (dbName) {
@@ -32,8 +35,8 @@ async function bootstrap() {
 
   const uri = getMongoUri(
     config.get('DB_HOST'),
-    config.get('DB_USER'),
-    config.get('DB_PASSWORD'),
+    config.get('DB_USER') || undefined,
+    config.get('DB_PASSWORD') || undefined,
     config.get('DB_NAME')
   );
 
