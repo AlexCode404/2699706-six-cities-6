@@ -1,4 +1,13 @@
-import { randomUUID } from 'node:crypto';
+import { webcrypto, randomUUID } from 'node:crypto';
+
+if (!('crypto' in globalThis)) {
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    writable: true,
+    configurable: true,
+    enumerable: true,
+  });
+}
 import { inject, injectable } from 'inversify';
 import * as jose from 'jose';
 import { Component } from '../../container/container.types.js';

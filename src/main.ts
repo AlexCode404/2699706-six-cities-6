@@ -1,3 +1,4 @@
+import './shared/helpers/web-crypto-polyfill.js';
 import 'reflect-metadata';
 import { container } from './shared/container/container.js';
 import { Component } from './shared/container/container.types.js';
